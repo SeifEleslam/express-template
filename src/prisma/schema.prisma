@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//**/////////////////////////////////////////////////**//
+
+model Employee {
+  id                   Int                @id @default(autoincrement())
+  email                String             @unique
+  name                 String
+  created_at           DateTime           @default(now())
+  updated_at           DateTime           @updatedAt
+  roles                Role_Employee[]    @relation(name: "employee")
+  roles_assigned       Role_Employee[]    @relation(name: "role_assigner")
+  permissions_assigned Permissions_Role[] @relation(name: "permission_assigner")
+}
+
+model Role {
+  id          Int                @id @default(autoincrement())
+  name        String
+  permissions Permissions_Role[]
+  role_assign Role_Employee[]
+}
+
+model Permission {
+  id    Int                @id @default(autoincrement())
+  name  String
+  roles Permissions_Role[]
+}
+
+model Role_Employee {
+  role        Role     @relation(fields: [role_id], references: [id])
+  role_id     Int
+  employee    Employee @relation(fields: [employee_id], references: [id], name: "employee")
+  employee_id Int
+  assigned_at DateTime @default(now())
+  assigned_by Employee @relation(fields: [assigner_id], references: [id], name: "role_assigner")
+  assigner_id Int
+
+  @@id([role_id, employee_id])
+}
+
+model Permissions_Role {
+  permission    Permission @relation(fields: [permission_id], references: [id])
+  permission_id Int
+  role          Role       @relation(fields: [role_id], references: [id])
+  role_id       Int
+  assigned_at   DateTime   @default(now())
+  assigned_by   Employee   @relation(fields: [assigner_id], references: [id], name: "permission_assigner")
+  assigner_id   Int
+
+  @@id([permission_id, role_id])
+}
